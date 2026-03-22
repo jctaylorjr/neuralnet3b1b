@@ -10,10 +10,16 @@ fn sigmoid(x: f64) -> f64 {
     1.0 / (1.0 + std::f64::consts::E.powf(x))
 }
 
-fn feed_forward(a: &[Vec<f64>], b: &[f64], bias: &[f64]) -> Vec<f64> {
-    a.iter()
-        .map(|row: &Vec<f64>| row.iter().zip(b.iter()).map(|(x, y)| x * y).sum::<f64>())
-        .zip(bias.iter())
+fn feed_forward(weights: &[Vec<f64>], preceding_layer: &[f64], biases: &[f64]) -> Vec<f64> {
+    weights
+        .iter()
+        .map(|row: &Vec<f64>| {
+            row.iter()
+                .zip(preceding_layer.iter())
+                .map(|(x, y)| x * y)
+                .sum::<f64>()
+        })
+        .zip(biases.iter())
         .map(|(product, bias)| sigmoid(product + bias))
         .collect()
 }
