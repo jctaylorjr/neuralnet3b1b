@@ -6,7 +6,12 @@
 //     a.iter().map(|row| dot_product(row, b)).collect()
 // }
 
+fn sigmoid_derivative(x: f64) -> f64 {
+    sigmoid(x) * (1.0 - sigmoid(x))
+}
+
 fn sigmoid(x: f64) -> f64 {
+    // https://calculus.subwiki.org/wiki/Logistic_function
     1.0 / (1.0 + std::f64::consts::E.powf(x))
 }
 
@@ -30,19 +35,19 @@ mod tests {
 
     #[test]
     fn test_feed_forward() {
-        let a = vec![
-            vec![1.0, 2.0, 3.0],
-            vec![1.0, 2.0, 3.0],
-            vec![1.0, 2.0, 3.0],
+        let weights = vec![
+            vec![1.0, 2.0, 3.0, 4.0, 5.0],
+            vec![1.0, 2.0, 3.0, 4.0, 5.0],
+            vec![1.0, 2.0, 3.0, 4.0, 5.0],
         ];
-        let b = vec![1.0, 2.0, 3.0];
-        let bias = vec![0.95, 0.5, 0.23];
+        let input_layer = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let bias = vec![1.0, 2.0, 4.0];
         let expected = vec![
-            sigmoid(14.0 + 0.95), // 1*1 + 2*2 + 3*3 + 0.95
-            sigmoid(14.0 + 0.5),  // 1*1 + 2*2 + 3*3 + 0.5
-            sigmoid(14.0 + 0.23), // 1*1 + 2*2 + 3*3 + 0.23
+            sigmoid(55.0 + 1.0),
+            sigmoid(55.0 + 2.0),
+            sigmoid(55.0 + 4.0),
         ];
-        assert_eq!(feed_forward(&a, &b, &bias), expected);
+        assert_eq!(feed_forward(&weights, &input_layer, &bias), expected);
     }
 
     #[test]
