@@ -16,6 +16,7 @@ fn sigmoid(x: f64) -> f64 {
 }
 
 fn feed_forward(weights: &[Vec<f64>], preceding_layer: &[f64], biases: &[f64]) -> Vec<f64> {
+    // activations = sigmoid(summation of all weights * preceding_layer neurons + biases)
     weights
         .iter()
         .map(|row: &Vec<f64>| {
@@ -27,6 +28,25 @@ fn feed_forward(weights: &[Vec<f64>], preceding_layer: &[f64], biases: &[f64]) -
         .zip(biases.iter())
         .map(|(product, bias)| sigmoid(product + bias))
         .collect()
+}
+
+fn z_values(weights: &[Vec<f64>], preceding_layer: &[f64], biases: &[f64]) -> Vec<f64> {
+    // preactivation values (z^l) = summation of weights * preceding_layer neurons + biases
+    weights
+        .iter()
+        .map(|row: &Vec<f64>| {
+            row.iter()
+                .zip(preceding_layer.iter())
+                .map(|(x, y)| x * y)
+                .sum::<f64>()
+        })
+        .zip(biases.iter())
+        .map(|(product, bias)| product + bias)
+        .collect()
+}
+
+fn back_propagation() {
+    // http://neuralnetworksanddeeplearning.com/chap2.html
 }
 
 #[cfg(test)]
