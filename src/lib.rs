@@ -1,3 +1,4 @@
+use rand::random_range;
 // fn dot_product(a: &[f64], b: &[f64]) -> f64 {
 //     a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
 // }
@@ -5,6 +6,82 @@
 // fn matrix_vector_multiply(a: &[Vec<f64>], b: &[f64]) -> Vec<f64> {
 //     a.iter().map(|row| dot_product(row, b)).collect()
 // }
+
+pub struct NeuralNetwork {
+    hidden_layer_count: usize,
+    hidden_layer_neuron_count: usize,
+    // input_layer_neuron_count: usize,
+    output_layer_neuron_count: usize,
+    layers: Vec<Vec<f64>>,
+    weights: Vec<Vec<Vec<f64>>>,
+    biases: Vec<Vec<f64>>,
+}
+
+impl NeuralNetwork {
+    fn new(
+        hidden_layer_count: usize,
+        hidden_layer_neuron_count: usize,
+        input_layer_neuron_count: usize,
+        output_layer_neuron_count: usize,
+        input_layer: Vec<f64>,
+    ) -> Self {
+        // in, hidden, out layers
+        let mut layers: Vec<Vec<f64>> = Vec::new();
+        layers.push(input_layer);
+        for _ in 0..hidden_layer_count {
+            layers.push(vec![0.0; hidden_layer_neuron_count]);
+        }
+        layers.push(vec![0.0; output_layer_neuron_count]);
+
+        // biases, init to 0 and will be adjusted by asymmetry breaking during back propagation
+        // https://ai.stackexchange.com/questions/14292/should-the-biases-be-zero-or-randomly-initialised
+        let mut biases: Vec<Vec<f64>> = Vec::new();
+        biases.push(vec![0.0; input_layer_neuron_count]);
+        for _ in 0..hidden_layer_count {
+            biases.push(vec![0.0; hidden_layer_neuron_count]);
+        }
+        biases.push(vec![0.0; output_layer_neuron_count]);
+
+        // weights, init to random between 0 and 1 f64
+        let mut weights: Vec<Vec<Vec<f64>>> = Vec::new();
+        weights.push(vec![
+            vec![random_range(0.0..=1.0); input_layer_neuron_count];
+            hidden_layer_neuron_count
+        ]);
+        for _ in 1..hidden_layer_count {
+            weights.push(vec![
+                vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
+                hidden_layer_neuron_count
+            ]);
+        }
+        weights.push(vec![
+            vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
+            output_layer_neuron_count
+        ]);
+
+        NeuralNetwork {
+            hidden_layer_count,
+            hidden_layer_neuron_count,
+            // input_layer_neuron_count,
+            output_layer_neuron_count,
+            layers,
+            weights,
+            biases,
+        }
+    }
+
+    fn load_input_layer(&mut self, input: Vec<f64>) {
+        self.layers.insert(0, input);
+    }
+
+    fn feed_forward(&mut self) {
+        for i in 0..self.layers.len() {
+            let z = weighted_sum(&self.weights[i], &self.layers[i], &self.biases[i]);
+            self.layers
+                .push(z.iter().map(|product| sigmoid(*product)).collect());
+        }
+    }
+}
 
 fn sigmoid_derivative(x: f64) -> f64 {
     sigmoid(x) * (1.0 - sigmoid(x))
@@ -15,28 +92,13 @@ fn sigmoid(x: f64) -> f64 {
     1.0 / (1.0 + std::f64::consts::E.powf(x))
 }
 
-fn feed_forward(weights: &[Vec<f64>], preceding_layer: &[f64], biases: &[f64]) -> Vec<f64> {
-    // activations = sigmoid(summation of all weights * preceding_layer neurons + biases)
+fn weighted_sum(weights: &[Vec<f64>], layer: &[f64], biases: &[f64]) -> Vec<f64> {
+    // (aka z values/preactivation value) summation of weights * preceding_layer neurons + biases
     weights
         .iter()
         .map(|row: &Vec<f64>| {
             row.iter()
-                .zip(preceding_layer.iter())
-                .map(|(x, y)| x * y)
-                .sum::<f64>()
-        })
-        .zip(biases.iter())
-        .map(|(product, bias)| sigmoid(product + bias))
-        .collect()
-}
-
-fn z_values(weights: &[Vec<f64>], preceding_layer: &[f64], biases: &[f64]) -> Vec<f64> {
-    // preactivation values (z^l) = summation of weights * preceding_layer neurons + biases
-    weights
-        .iter()
-        .map(|row: &Vec<f64>| {
-            row.iter()
-                .zip(preceding_layer.iter())
+                .zip(layer.iter())
                 .map(|(x, y)| x * y)
                 .sum::<f64>()
         })
@@ -67,7 +129,7 @@ mod tests {
             sigmoid(55.0 + 2.0),
             sigmoid(55.0 + 4.0),
         ];
-        assert_eq!(feed_forward(&weights, &input_layer, &bias), expected);
+        assert_eq!(weighted_sum(&weights, &input_layer, &bias), expected);
     }
 
     #[test]

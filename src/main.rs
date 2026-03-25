@@ -1,6 +1,6 @@
 use rand::random;
 
-use neuralnet3b1b::z_values;
+use neuralnet3b1b::weighted_sum;
 
 fn main() {
     // for every image there is going to be a random set of weights and biases for the input layer
