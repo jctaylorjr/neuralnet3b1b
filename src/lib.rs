@@ -1,4 +1,6 @@
-use rand::random_range;
+use std::vec;
+
+use rand::{Rng, random};
 // fn dot_product(a: &[f64], b: &[f64]) -> f64 {
 //     a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
 // }
@@ -12,52 +14,63 @@ pub struct NeuralNetwork {
     hidden_layer_neuron_count: usize,
     // input_layer_neuron_count: usize,
     output_layer_neuron_count: usize,
-    layers: Vec<Vec<f64>>,
-    weights: Vec<Vec<Vec<f64>>>,
-    biases: Vec<Vec<f64>>,
+    pub layers: Vec<Vec<f64>>,
+    pub weights: Vec<Vec<Vec<f64>>>,
+    pub biases: Vec<Vec<f64>>,
+    pub activation_values: Vec<Vec<f64>>,
 }
 
 impl NeuralNetwork {
-    fn new(
+    pub fn new(
         hidden_layer_count: usize,
         hidden_layer_neuron_count: usize,
         input_layer_neuron_count: usize,
         output_layer_neuron_count: usize,
         input_layer: Vec<f64>,
     ) -> Self {
+        // This might reduce repetivite code for initializing layers, weights, and biases
+        let layer_sizes = vec![
+            input_layer_neuron_count,
+            vec![hidden_layer_neuron_count; hidden_layer_count]
+                .into_iter()
+                .flatten()
+                .collect(),
+            output_layer_neuron_count,
+        ];
+        let mut rng = rand::thread_rng();
+
         // in, hidden, out layers
         let mut layers: Vec<Vec<f64>> = Vec::new();
-        layers.push(input_layer);
-        for _ in 0..hidden_layer_count {
-            layers.push(vec![0.0; hidden_layer_neuron_count]);
+        for size in layer_sizes {
+            layers.push(vec![0.0; size]);
         }
-        layers.push(vec![0.0; output_layer_neuron_count]);
 
         // biases, init to 0 and will be adjusted by asymmetry breaking during back propagation
         // https://ai.stackexchange.com/questions/14292/should-the-biases-be-zero-or-randomly-initialised
         let mut biases: Vec<Vec<f64>> = Vec::new();
-        biases.push(vec![0.0; input_layer_neuron_count]);
-        for _ in 0..hidden_layer_count {
-            biases.push(vec![0.0; hidden_layer_neuron_count]);
+        for size in layer_sizes {
+            biases.push(vec![0.0; size]);
         }
-        biases.push(vec![0.0; output_layer_neuron_count]);
+        biases.pop();
 
         // weights, init to random between 0 and 1 f64
         let mut weights: Vec<Vec<Vec<f64>>> = Vec::new();
-        weights.push(vec![
-            vec![random_range(0.0..=1.0); input_layer_neuron_count];
-            hidden_layer_neuron_count
-        ]);
-        for _ in 1..hidden_layer_count {
-            weights.push(vec![
-                vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
-                hidden_layer_neuron_count
-            ]);
-        }
-        weights.push(vec![
-            vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
-            output_layer_neuron_count
-        ]);
+        for size in layer_sizes {}
+
+        // weights.push(vec![
+        //     vec![; input_layer_neuron_count];
+        //     hidden_layer_neuron_count
+        // ]);
+        // for _ in 1..hidden_layer_count {
+        //     weights.push(vec![
+        //         vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
+        //         hidden_layer_neuron_count
+        //     ]);
+        // }
+        // weights.push(vec![
+        //     vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
+        //     output_layer_neuron_count
+        // ]);
 
         NeuralNetwork {
             hidden_layer_count,
@@ -67,6 +80,7 @@ impl NeuralNetwork {
             layers,
             weights,
             biases,
+            activation_values: Vec::new(),
         }
     }
 
@@ -74,11 +88,13 @@ impl NeuralNetwork {
         self.layers.insert(0, input);
     }
 
-    fn feed_forward(&mut self) {
-        for i in 0..self.layers.len() {
+    pub fn feed_forward(&mut self) {
+        for i in 0..self.layers.len() - 1 {
             let z = weighted_sum(&self.weights[i], &self.layers[i], &self.biases[i]);
-            self.layers
-                .push(z.iter().map(|product| sigmoid(*product)).collect());
+            self.layers[i + 1] = z.iter().map(|product| sigmoid(*product)).collect();
+            self.activation_values.push(z);
+            // self.layers
+            //     .push(z.iter().map(|product| sigmoid(*product)).collect());
         }
     }
 }
@@ -109,6 +125,10 @@ fn weighted_sum(weights: &[Vec<f64>], layer: &[f64], biases: &[f64]) -> Vec<f64>
 
 fn back_propagation() {
     // http://neuralnetworksanddeeplearning.com/chap2.html
+}
+
+fn random_vector(size: usize, &mut rng: &mut rand::ThreadRng) -> Vec<f64> {
+    (0..size).map(|_| rng.gen_range(0.0..=1.0)).collect()
 }
 
 #[cfg(test)]
