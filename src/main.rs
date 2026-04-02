@@ -28,10 +28,32 @@ fn main() {
         vec![1.0; 784], // TODO: load MNIST image and convert to input layer
     );
 
-    nn.feed_forward();
-    for layer in nn.layers {
-        println!("Length: {}\nValues: {:?}", layer.len(), layer);
+    let mut i = 0;
+    for x in nn.weights.iter() {
+        for y in x.iter() {
+            for z in y.iter() {
+                i += 1;
+                println!("{}", z);
+            }
+        }
     }
+
+    println!("Total weights: {}", i);
+
+    // println!(
+    //     "Layers: {:?}",
+    //     nn.weights
+    //         .iter()
+    //         .flatten()
+    //         .flatten()
+    //         .collect::<Vec<&f64>>()
+    //         .len()
+    // );
+
+    // nn.feed_forward();
+    // for layer in nn.layers {
+    //     println!("Length: {}\nValues: {:?}", layer.len(), layer);
+    // }
     // for activation in nn.activation_values {
     //     println!("Length: {}\nValues: {:?}", activation.len(), activation);
     // }

@@ -1,6 +1,7 @@
 use std::vec;
 
-use rand::{Rng, random};
+use rand;
+// use rand::{RngExt, rngs::ThreadRng};
 // fn dot_product(a: &[f64], b: &[f64]) -> f64 {
 //     a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
 // }
@@ -30,47 +31,40 @@ impl NeuralNetwork {
     ) -> Self {
         // This might reduce repetivite code for initializing layers, weights, and biases
         let layer_sizes = vec![
-            input_layer_neuron_count,
-            vec![hidden_layer_neuron_count; hidden_layer_count]
-                .into_iter()
-                .flatten()
-                .collect(),
+            // input_layer_neuron_count,
+            hidden_layer_neuron_count,
+            hidden_layer_neuron_count,
             output_layer_neuron_count,
         ];
-        let mut rng = rand::thread_rng();
 
         // in, hidden, out layers
-        let mut layers: Vec<Vec<f64>> = Vec::new();
-        for size in layer_sizes {
-            layers.push(vec![0.0; size]);
-        }
+        let mut layers: Vec<Vec<f64>> = vec![input_layer];
+        layers.extend(
+            layer_sizes
+                .iter()
+                .map(|size| vec![0.0; *size])
+                .collect::<Vec<Vec<f64>>>(),
+        );
 
         // biases, init to 0 and will be adjusted by asymmetry breaking during back propagation
         // https://ai.stackexchange.com/questions/14292/should-the-biases-be-zero-or-randomly-initialised
-        let mut biases: Vec<Vec<f64>> = Vec::new();
-        for size in layer_sizes {
-            biases.push(vec![0.0; size]);
-        }
-        biases.pop();
+        let mut biases: Vec<Vec<f64>> = layer_sizes.iter().map(|size| vec![0.0; *size]).collect();
 
         // weights, init to random between 0 and 1 f64
-        let mut weights: Vec<Vec<Vec<f64>>> = Vec::new();
-        for size in layer_sizes {}
-
-        // weights.push(vec![
-        //     vec![; input_layer_neuron_count];
-        //     hidden_layer_neuron_count
-        // ]);
-        // for _ in 1..hidden_layer_count {
-        //     weights.push(vec![
-        //         vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
-        //         hidden_layer_neuron_count
-        //     ]);
-        // }
-        // weights.push(vec![
-        //     vec![random_range(0.0..=1.0); hidden_layer_neuron_count];
-        //     output_layer_neuron_count
-        // ]);
+        let mut weights: Vec<Vec<Vec<f64>>> = layers
+            .iter()
+            .map(|l| l.len())
+            .zip(layer_sizes.clone().iter())
+            .map(|(pre_layer, next_layer)| {
+                (0..pre_layer)
+                    .map(|_| {
+                        (0..*next_layer)
+                            .map(|_| rand::random_range(0.0..=1.0))
+                            .collect()
+                    })
+                    .collect()
+            })
+            .collect();
 
         NeuralNetwork {
             hidden_layer_count,
@@ -99,15 +93,6 @@ impl NeuralNetwork {
     }
 }
 
-fn sigmoid_derivative(x: f64) -> f64 {
-    sigmoid(x) * (1.0 - sigmoid(x))
-}
-
-fn sigmoid(x: f64) -> f64 {
-    // https://calculus.subwiki.org/wiki/Logistic_function
-    1.0 / (1.0 + std::f64::consts::E.powf(x))
-}
-
 fn weighted_sum(weights: &[Vec<f64>], layer: &[f64], biases: &[f64]) -> Vec<f64> {
     // (aka z values/preactivation value) summation of weights * preceding_layer neurons + biases
     weights
@@ -123,12 +108,16 @@ fn weighted_sum(weights: &[Vec<f64>], layer: &[f64], biases: &[f64]) -> Vec<f64>
         .collect()
 }
 
-fn back_propagation() {
-    // http://neuralnetworksanddeeplearning.com/chap2.html
+fn sigmoid_derivative(x: f64) -> f64 {
+    sigmoid(x) * (1.0 - sigmoid(x))
 }
 
-fn random_vector(size: usize, &mut rng: &mut rand::ThreadRng) -> Vec<f64> {
-    (0..size).map(|_| rng.gen_range(0.0..=1.0)).collect()
+fn sigmoid(x: f64) -> f64 {
+    // https://calculus.subwiki.org/wiki/Logistic_function
+    1.0 / (1.0 + std::f64::consts::E.powf(x))
+}
+fn back_propagation() {
+    // http://neuralnetworksanddeeplearning.com/chap2.html
 }
 
 #[cfg(test)]
