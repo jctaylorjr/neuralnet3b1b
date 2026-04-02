@@ -25,13 +25,13 @@ fn main() {
     println!("Total weights: {}", i);
 
     nn.feed_forward();
-    for layer in nn.layers {
-        println!("Length: {}\nValues: {:?}", layer.len(), layer);
-    }
+    // for layer in nn.layers {
+    //     println!("Length: {}\nValues: {:?}", layer.len(), layer);
+    // }
     for activation in nn.activation_values {
         println!("Length: {}\nValues: {:?}", activation.len(), activation);
     }
-    for weight in nn.weights {
-        println!("Length: {}\nValues: {:?}", weight.len(), weight);
-    }
+    // for weight in nn.weights {
+    //     println!("Length: {}\nValues: {:?}", weight.len(), weight);
+    // }
 }

@@ -35,7 +35,7 @@ impl NeuralNetwork {
         let mut weights: Vec<Vec<Vec<f64>>> = layers
             .iter()
             .map(|l| l.len())
-            .zip(layer_sizes.clone().iter())
+            .zip(layer_sizes.iter())
             .map(|(pre_layer, next_layer)| {
                 (0..pre_layer)
                     .map(|_| {
@@ -64,6 +64,10 @@ impl NeuralNetwork {
             //     .push(z.iter().map(|product| sigmoid(*product)).collect());
         }
     }
+
+    fn _back_propagation(&mut self) {
+        // http://neuralnetworksanddeeplearning.com/chap2.html
+    }
 }
 
 fn weighted_sum(weights: &[Vec<f64>], layer: &[f64], biases: &[f64]) -> Vec<f64> {
@@ -88,9 +92,6 @@ fn _sigmoid_derivative(x: f64) -> f64 {
 fn sigmoid(x: f64) -> f64 {
     // https://calculus.subwiki.org/wiki/Logistic_function
     1.0 / (1.0 + std::f64::consts::E.powf(x))
-}
-fn _back_propagation() {
-    // http://neuralnetworksanddeeplearning.com/chap2.html
 }
 
 #[cfg(test)]
