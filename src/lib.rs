@@ -60,12 +60,10 @@ impl NeuralNetwork {
             let z = weighted_sum(&self.weights[i], &self.layers[i], &self.biases[i]);
             self.layers[i + 1] = z.iter().map(|product| sigmoid(*product)).collect();
             self.activation_values.push(z);
-            // self.layers
-            //     .push(z.iter().map(|product| sigmoid(*product)).collect());
         }
     }
 
-    fn _back_propagation(&mut self) {
+    fn back_propagation(&mut self) {
         // http://neuralnetworksanddeeplearning.com/chap2.html
     }
 }
