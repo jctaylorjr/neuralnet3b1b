@@ -4,7 +4,8 @@ pub struct NeuralNetwork {
     pub layers: Vec<Vec<f64>>,
     pub weights: Vec<Vec<Vec<f64>>>,
     pub biases: Vec<Vec<f64>>,
-    pub activation_values: Vec<Vec<f64>>,
+    pub z_values: Vec<Vec<f64>>,
+    pub cost: f64,
 }
 
 impl NeuralNetwork {
@@ -51,7 +52,8 @@ impl NeuralNetwork {
             layers,
             weights,
             biases,
-            activation_values: Vec::new(),
+            z_values: Vec::new(),
+            cost: 0.0,
         }
     }
 
@@ -59,12 +61,18 @@ impl NeuralNetwork {
         for i in 0..self.layers.len() - 1 {
             let z = weighted_sum(&self.weights[i], &self.layers[i], &self.biases[i]);
             self.layers[i + 1] = z.iter().map(|product| sigmoid(*product)).collect();
-            self.activation_values.push(z);
+            self.z_values.push(z);
         }
     }
 
-    fn back_propagation(&mut self) {
+    fn back_propagation(&mut self, expected_output: Vec<f64>) {
         // http://neuralnetworksanddeeplearning.com/chap2.html
+        let cost = cost(self.layers.last().unwrap(), &expected_output);
+
+        // Adjusting weights
+
+        // Adjusting biases
+        self.cost = cost;
     }
 }
 
@@ -92,12 +100,22 @@ fn sigmoid(x: f64) -> f64 {
     1.0 / (1.0 + std::f64::consts::E.powf(x))
 }
 
+fn cost(actual: &[f64], expected: &[f64]) -> f64 {
+    // sum of (actual - expected)^2 / number of outputs
+    actual
+        .iter()
+        .zip(expected.iter())
+        .map(|(a, e)| (a - e).powf(2.0))
+        .sum::<f64>()
+        / actual.len() as f64
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_feed_forward() {
+    fn test_weighted_sum() {
         let weights = vec![
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
@@ -105,11 +123,7 @@ mod tests {
         ];
         let input_layer = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let bias = vec![1.0, 2.0, 4.0];
-        let expected = vec![
-            sigmoid(55.0 + 1.0),
-            sigmoid(55.0 + 2.0),
-            sigmoid(55.0 + 4.0),
-        ];
+        let expected = vec![55.0 + 1.0, 55.0 + 2.0, 55.0 + 4.0];
         assert_eq!(weighted_sum(&weights, &input_layer, &bias), expected);
     }
 
