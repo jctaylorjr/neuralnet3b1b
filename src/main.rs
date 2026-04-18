@@ -26,7 +26,7 @@ fn main() {
 
     nn.feed_forward();
 
-    for layer in nn.layers {
+    for layer in &nn.layers {
         println!("Length: {}\nValues: {:?}", layer.len(), layer);
     }
 
@@ -37,4 +37,15 @@ fn main() {
     // for weight in nn.weights {
     //     println!("Length: {}\nValues: {:?}", weight.len(), weight);
     // }
+
+    for bias in &nn.biases {
+        println!("Length: {}\nValues: {:?}", bias.len(), bias);
+    }
+
+    let mut aasd: Vec<f64> = vec![0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0];
+    nn.back_propagation(&aasd);
+
+    for x in &nn.cost_vector {
+        println!("Values: {:?}", x);
+    }
 }

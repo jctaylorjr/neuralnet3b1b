@@ -1,3 +1,5 @@
+use std::iter;
+
 use rand;
 
 pub struct NeuralNetwork {
@@ -5,7 +7,7 @@ pub struct NeuralNetwork {
     pub weights: Vec<Vec<Vec<f64>>>,
     pub biases: Vec<Vec<f64>>,
     pub z_values: Vec<Vec<f64>>,
-    pub cost: f64,
+    pub cost_vector: Vec<f64>,
 }
 
 impl NeuralNetwork {
@@ -53,7 +55,7 @@ impl NeuralNetwork {
             weights,
             biases,
             z_values: Vec::new(),
-            cost: 0.0,
+            cost_vector: Vec::new(),
         }
     }
 
@@ -65,14 +67,25 @@ impl NeuralNetwork {
         }
     }
 
-    fn back_propagation(&mut self, expected_output: Vec<f64>) {
+    pub fn back_propagation(&mut self, expected_output: &Vec<f64>) {
         // http://neuralnetworksanddeeplearning.com/chap2.html
-        let cost = cost(self.layers.last().unwrap(), &expected_output);
+        // BP1, delta is da/dz * dC/da (which is sigma'(z) * 2(a-y) in video, and delta used by article 3b1b used)
+        let mut delta = self
+            .layers
+            .last()
+            .unwrap()
+            .iter()
+            .zip(expected_output.iter())
+            .map(|(a, y)| 2.0 * (a - y))
+            .zip(self.z_values.last().unwrap())
+            .map(|(cost, z)| cost * sigmoid_derivative(*z))
+            .collect();
 
         // Adjusting weights
 
         // Adjusting biases
-        self.cost = cost;
+        // self.cost = cost;
+        self.cost_vector = delta;
     }
 }
 
@@ -91,7 +104,7 @@ fn weighted_sum(weights: &[Vec<f64>], layer: &[f64], biases: &[f64]) -> Vec<f64>
         .collect()
 }
 
-fn _sigmoid_derivative(x: f64) -> f64 {
+fn sigmoid_derivative(x: f64) -> f64 {
     sigmoid(x) * (1.0 - sigmoid(x))
 }
 
