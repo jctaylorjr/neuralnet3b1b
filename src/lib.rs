@@ -60,6 +60,8 @@ impl NeuralNetwork {
     }
 
     pub fn feed_forward(&mut self) {
+        // pub fn feed_forward(&mut self, input_layer: Vec<f64>) {
+        // self.layers[0] = input_layer;
         for i in 0..self.layers.len() - 1 {
             let z = weighted_sum(&self.weights[i], &self.layers[i], &self.biases[i]);
             self.layers[i + 1] = z.iter().map(|product| sigmoid(*product)).collect();
@@ -82,6 +84,10 @@ impl NeuralNetwork {
             .collect();
 
         // Adjusting weights
+        let len = self.layers.len();
+        for i in (1..len - 1).rev() {
+            // Implementation for adjusting weights
+        }
 
         // Adjusting biases
         // self.cost = cost;
