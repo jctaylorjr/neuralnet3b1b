@@ -8,6 +8,7 @@ pub struct NeuralNetwork {
     pub biases: Vec<Vec<f64>>,
     pub z_values: Vec<Vec<f64>>,
     pub cost_vector: Vec<f64>,
+    pub batch_size: usize,
 }
 
 impl NeuralNetwork {
@@ -16,6 +17,7 @@ impl NeuralNetwork {
         hidden_layer_neuron_count: usize,
         output_layer_neuron_count: usize,
         input_layer: Vec<f64>,
+        batch_size: usize,
     ) -> Self {
         // not including input layer
         let mut layer_sizes = vec![hidden_layer_neuron_count; hidden_layer_count];
@@ -56,15 +58,40 @@ impl NeuralNetwork {
             biases,
             z_values: Vec::new(),
             cost_vector: Vec::new(),
+            batch_size,
         }
     }
+
+    // redo 
+    pub fn train(&mut self, training_data: Vec<(Vec<f64>, Vec<f64>)>, epochs: usize) {
+        for _ in 0..epochs {
+            // shuffle training data
+            let mut shuffled_data = training_data.clone();
+            rand::thread_rng().shuffle(&mut shuffled_data);
+
+            // create mini-batches
+            let mini_batches: Vec<Vec<(Vec<f64>, Vec<f64>)>> = shuffled_data
+                .chunks(self.batch_size)
+                .map(|chunk| chunk.to_vec())
+                .collect();
+
+            for mini_batch in mini_batches {
+                self.update_mini_batch(mini_batch);
+            }
+        }
+    }
+
+
 
     pub fn feed_forward(&mut self) {
         // pub fn feed_forward(&mut self, input_layer: Vec<f64>) {
         // self.layers[0] = input_layer;
-        for i in 0..self.layers.len() - 1 {
-            let z = weighted_sum(&self.weights[i], &self.layers[i], &self.biases[i]);
-            self.layers[i + 1] = z.iter().map(|product| sigmoid(*product)).collect();
+        let weights = self.weights.clone();
+        let mut layers = self.layers.clone();
+        let biases = self.biases.clone();
+        for i in 0..layers.len() - 1 {
+            let z = weighted_sum(&weights[i], &layers[i], &biases[i]);
+            layers[i + 1] = z.iter().map(|product| sigmoid(*product)).collect();
             self.z_values.push(z);
         }
     }
@@ -127,6 +154,24 @@ fn cost(actual: &[f64], expected: &[f64]) -> f64 {
         .map(|(a, e)| (a - e).powf(2.0))
         .sum::<f64>()
         / actual.len() as f64
+}
+
+// minibatch element has x, y fields. x is activations  and y is expected output.
+// update_mini_batch given minibatch struct and learning rate.
+// clone all of the weights and biases from current network, and pass in results from the feed forward
+// for each 
+struct MiniBatch {
+    pub layers: Vec<Vec<Vec<f64>>>,
+    pub weights: Vec<Vec<Vec<Vec<f64>>>>,
+}
+
+impl MiniBatch {
+    pub fn new() -> Self {
+        MiniBatch {
+            layers: Vec::new(),
+            weights: Vec::new(),
+        }
+    }
 }
 
 #[cfg(test)]
