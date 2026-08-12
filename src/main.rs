@@ -10,6 +10,7 @@ fn main() {
         16,
         10,
         vec![1.0; 784], // TODO: load MNIST image and convert to input layer
+                        // 10,
     );
 
     let mut i = 0;
@@ -24,7 +25,7 @@ fn main() {
 
     println!("Total weights: {}", i);
 
-    nn.feed_forward();
+    // nn.feed_forward();
 
     for layer in &nn.layers {
         println!("Length: {}\nValues: {:?}", layer.len(), layer);
